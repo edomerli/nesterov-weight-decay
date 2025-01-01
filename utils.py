@@ -55,9 +55,16 @@ def init_params(net):
                 init.constant(m.bias, 0)
 
 
-# _, term_width = os.popen('stty size', 'r').read().split()
-term_size = shutil.get_terminal_size((80, 20))
-term_width = term_size.columns
+if sys.platform == 'win32':
+    term_size = shutil.get_terminal_size((80, 20))
+    term_width = term_size.columns
+elif sys.platform == 'linux':
+    _, term_width = os.popen('stty size', 'r').read().split()
+    term_width = int(term_width)
+else:
+    raise 
+    Exception(f"Unsupported platform {sys.platform}")
+
 
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
