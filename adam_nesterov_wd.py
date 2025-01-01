@@ -43,6 +43,7 @@ class AdamNesterovWD(Optimizer):
         differentiable: bool = False,
         fused: Optional[bool] = None,
     ):
+        print("Using AdamNesterovWD")   # [EDO]
         if not 0.0 <= lr:
             raise ValueError(f"Invalid learning rate: {lr}")
         if isinstance(lr, Tensor) and foreach and not capturable:
@@ -189,7 +190,7 @@ class AdamNesterovWD(Optimizer):
         return has_complex
 
     @_use_grad_for_differentiable
-    def step(self, closure=None):
+    def step(self, is_final=False, closure=None):   # [EDO] (is_final=False)
         """Perform a single optimization step.
 
         Args:
@@ -245,6 +246,7 @@ class AdamNesterovWD(Optimizer):
                 grad_scale=getattr(self, "grad_scale", None),
                 found_inf=getattr(self, "found_inf", None),
                 has_complex=has_complex,
+                is_final=is_final,  # [EDO]
             )
 
         return loss
@@ -340,7 +342,6 @@ def _single_tensor_adamw(
     differentiable: bool,
     has_complex: bool,
 ):
-    print("Using single tensor adamw")
     assert grad_scale is None and found_inf is None
 
     if torch.jit.is_scripting():
@@ -459,8 +460,9 @@ def _multi_tensor_adamw(
     capturable: bool,
     differentiable: bool,
     has_complex: bool,
+    is_final: bool, # [EDO]
 ):
-    print("Using multi tensor adamw")
+    # print("Using multi tensor adamw") # [EDO]
     if len(params) == 0:
         return
 
@@ -523,9 +525,10 @@ def _multi_tensor_adamw(
         else:
             torch._foreach_add_(device_state_steps, 1)
 
-        # Perform stepweight decay
-        if weight_decay != 0:
-            torch._foreach_mul_(device_params, 1 - lr * weight_decay)
+        # [EDO] (commented out)
+        # # Perform stepweight decay
+        # if weight_decay != 0:
+        #     torch._foreach_mul_(device_params, 1 - lr * weight_decay)
 
         # Decay the first and second moment running average coefficient
         torch._foreach_lerp_(device_exp_avgs, device_grads, 1 - beta1)
@@ -610,6 +613,11 @@ def _multi_tensor_adamw(
                 step_size,  # type: ignore[arg-type]
             )
 
+        # [EDO]
+        # Perform stepweight decay, BEFORE running the network and computing loss and gradients! And only if it's not the final step of the epoch.
+        if weight_decay != 0 and not is_final:
+            torch._foreach_mul_(device_params, 1 - lr * weight_decay)
+
 
 def _fused_adamw(
     params: List[Tensor],
@@ -632,7 +640,6 @@ def _fused_adamw(
     differentiable: bool,
     has_complex: bool,  # Needed for consistency.
 ) -> None:
-    print("Using fused adamw")
     if not params:
         return
     if differentiable:
@@ -719,6 +726,7 @@ def adamw(
     grad_scale: Optional[Tensor] = None,
     found_inf: Optional[Tensor] = None,
     has_complex: bool = False,
+    is_final: bool = False, # [EDO]
     *,
     amsgrad: bool,
     beta1: float,
@@ -786,4 +794,5 @@ def adamw(
         grad_scale=grad_scale,
         found_inf=found_inf,
         has_complex=has_complex,
+        is_final=is_final,  # [EDO]
     )
