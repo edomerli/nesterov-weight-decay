@@ -72,7 +72,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 print('==> Building model..')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # model = torchvision.models.resnet.resnet18(num_classes=10).to(device)
-model = ResNet18(num_classes=10).to(device)
+model = ResNet18().to(device)
 if device.type == 'cuda':
     model = torch.nn.DataParallel(model)
 wandb.watch(model, log='all')
