@@ -37,7 +37,7 @@ def init_params(net):
 
 def setup_wandb(config):
     wandb.login(key="14a7d0e7554bbddd13ca1a8d45472f7a95e73ca4")
-    run_name = f"{'nesterovwd' if config.nesterov_wd else 'original'}_{config.model}_wd{config.wd}_lr{config.lr}_epochs{config.epochs}"
+    run_name = f"{'nesterovwd' if config.nesterov_wd else 'original'}_{config.optimizer}_wd{config.wd}_lr{config.lr}_epochs{config.epochs}"
     wandb.init(project="nesterov-weight-decay", name=run_name, config=vars(config), sync_tensorboard=True)
 
     wandb.define_metric("train/epoch")
