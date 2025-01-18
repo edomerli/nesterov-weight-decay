@@ -32,8 +32,7 @@ def init_params(net):
             init.constant(m.bias, 0)
         elif isinstance(m, nn.Linear):
             init.normal(m.weight, std=1e-3)
-            if m.bias:
-                init.constant(m.bias, 0)
+            init.constant(m.bias, 0)
 
 def setup_wandb(config):
     wandb.login(key="14a7d0e7554bbddd13ca1a8d45472f7a95e73ca4")
