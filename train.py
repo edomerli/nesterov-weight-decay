@@ -10,6 +10,7 @@ import json
 import wandb
 from argparse import Namespace
 
+from resnets import ResNet18
 from nesterov_wd.adam_nesterov_wd import AdamNesterovWD
 from nesterov_wd.sgd_nesterov_wd import SGD_NesterovWD
 from utils import seed_everything, setup_wandb
@@ -70,7 +71,8 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 
 print('==> Building model..')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = torchvision.models.resnet.resnet18(num_classes=10).to(device)
+# model = torchvision.models.resnet.resnet18(num_classes=10).to(device)
+model = ResNet18(num_classes=10).to(device)
 if device.type == 'cuda':
     model = torch.nn.DataParallel(model)
 wandb.watch(model, log='all')
