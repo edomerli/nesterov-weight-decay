@@ -6,11 +6,6 @@ import torch.nn as nn
 import torch.nn.init as init
 import wandb
 
-"""Some helper functions for PyTorch, including:
-    - seed_everythin: set the seed.
-    - init_params: net parameter initialization.
-"""
-
 def seed_everything(seed):
     """Seed all sources of randomness for reproducibility"""
     random.seed(seed)
@@ -19,20 +14,6 @@ def seed_everything(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-def init_params(net):
-    """Init layer parameters."""
-    for m in net.modules():
-        if isinstance(m, nn.Conv2d):
-            init.kaiming_normal(m.weight, mode='fan_out')
-            if m.bias:
-                init.constant(m.bias, 0)
-        elif isinstance(m, nn.BatchNorm2d):
-            init.constant(m.weight, 1)
-            init.constant(m.bias, 0)
-        elif isinstance(m, nn.Linear):
-            init.normal(m.weight, std=1e-3)
-            init.constant(m.bias, 0)
 
 def setup_wandb(config):
     wandb.login(key="14a7d0e7554bbddd13ca1a8d45472f7a95e73ca4")

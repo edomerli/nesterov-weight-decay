@@ -12,7 +12,7 @@ from argparse import Namespace
 
 from nesterov_wd.adam_nesterov_wd import AdamNesterovWD
 from nesterov_wd.sgd_nesterov_wd import SGD_NesterovWD
-from utils import seed_everything, setup_wandb, init_params
+from utils import seed_everything, setup_wandb
 from custom_schedulers import CustomMultiStepLR, CustomRandomLR
 
 # --------------------------------------------------------------------------------
@@ -71,7 +71,6 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 print('==> Building model..')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = torchvision.models.resnet.resnet18(num_classes=10).to(device)
-init_params(model)
 if device.type == 'cuda':
     model = torch.nn.DataParallel(model)
 wandb.watch(model, log='all')
@@ -180,3 +179,5 @@ for epoch in tqdm(range(config.epochs)):
     train(epoch)
     test(epoch)    
     scheduler.step()
+
+wandb.finish()
