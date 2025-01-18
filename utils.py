@@ -1,19 +1,14 @@
 
-import os
-import sys
-import shutil
-import time
 import random
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+import wandb
 
 """Some helper functions for PyTorch, including:
-    - set the seed.
-    - get_mean_and_std: calculate the mean and std value of dataset.
-    - msr_init: net parameter initialization.
-    - progress_bar: progress bar mimic xlua.progress.
+    - seed_everythin: set the seed.
+    - init_params: net parameter initialization.
 """
 
 def seed_everything(seed):
@@ -24,20 +19,6 @@ def seed_everything(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-def get_mean_and_std(dataset):
-    """Compute the mean and std value of dataset."""
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)
-    mean = torch.zeros(3)
-    std = torch.zeros(3)
-    print('==> Computing mean and std..')
-    for inputs, targets in dataloader:
-        for i in range(3):
-            mean[i] += inputs[:,i,:,:].mean()
-            std[i] += inputs[:,i,:,:].std()
-    mean.div_(len(dataset))
-    std.div_(len(dataset))
-    return mean, std
 
 def init_params(net):
     """Init layer parameters."""
@@ -54,84 +35,20 @@ def init_params(net):
             if m.bias:
                 init.constant(m.bias, 0)
 
+def setup_wandb(config):
+    wandb.login(key="14a7d0e7554bbddd13ca1a8d45472f7a95e73ca4")
+    run_name = f"{'nesterovwd' if config.nesterov_wd else 'original'}_{config.model}_wd{config.wd}_lr{config.lr}_epochs{config.epochs}"
+    wandb.init(project="nesterov-weight-decay", name=run_name, config=vars(config), sync_tensorboard=True)
 
-term_size = shutil.get_terminal_size()
-term_width = term_size.columns
+    wandb.define_metric("train/epoch")
+    wandb.define_metric("train/loss", step_metric="train/epoch")
+    wandb.define_metric("train/accuracy", step_metric="train/epoch")
+    wandb.define_metric("train/params_l2", step_metric="train/epoch")
+    wandb.define_metric("train/lr", step_metric="train/epoch")
+    wandb.define_metric("train/weight_decay", step_metric="train/epoch")
 
-TOTAL_BAR_LENGTH = 65.
-last_time = time.time()
-begin_time = last_time
-def progress_bar(current, total, msg=None):
-    global last_time, begin_time
-    if current == 0:
-        begin_time = time.time()  # Reset for new bar.
-
-    cur_len = int(TOTAL_BAR_LENGTH*current/total)
-    rest_len = int(TOTAL_BAR_LENGTH - cur_len) - 1
-
-    sys.stdout.write(' [')
-    for i in range(cur_len):
-        sys.stdout.write('=')
-    sys.stdout.write('>')
-    for i in range(rest_len):
-        sys.stdout.write('.')
-    sys.stdout.write(']')
-
-    cur_time = time.time()
-    step_time = cur_time - last_time
-    last_time = cur_time
-    tot_time = cur_time - begin_time
-
-    L = []
-    L.append('  Step: %s' % format_time(step_time))
-    L.append(' | Tot: %s' % format_time(tot_time))
-    if msg:
-        L.append(' | ' + msg)
-
-    msg = ''.join(L)
-    sys.stdout.write(msg)
-    for i in range(term_width-int(TOTAL_BAR_LENGTH)-len(msg)-3):
-        sys.stdout.write(' ')
-
-    # Go back to the center of the bar.
-    for i in range(term_width-int(TOTAL_BAR_LENGTH/2)+2):
-        sys.stdout.write('\b')
-    sys.stdout.write(' %d/%d ' % (current+1, total))
-
-    if current < total-1:
-        sys.stdout.write('\r')
-    else:
-        sys.stdout.write('\n')
-    sys.stdout.flush()
-
-def format_time(seconds):
-    days = int(seconds / 3600/24)
-    seconds = seconds - days*3600*24
-    hours = int(seconds / 3600)
-    seconds = seconds - hours*3600
-    minutes = int(seconds / 60)
-    seconds = seconds - minutes*60
-    secondsf = int(seconds)
-    seconds = seconds - secondsf
-    millis = int(seconds*1000)
-
-    f = ''
-    i = 1
-    if days > 0:
-        f += str(days) + 'D'
-        i += 1
-    if hours > 0 and i <= 2:
-        f += str(hours) + 'h'
-        i += 1
-    if minutes > 0 and i <= 2:
-        f += str(minutes) + 'm'
-        i += 1
-    if secondsf > 0 and i <= 2:
-        f += str(secondsf) + 's'
-        i += 1
-    if millis > 0 and i <= 2:
-        f += str(millis) + 'ms'
-        i += 1
-    if f == '':
-        f = '0ms'
-    return f
+    wandb.define_metric("test/epoch")
+    wandb.define_metric("test/loss", step_metric="test/epoch")
+    wandb.define_metric("test/accuracy", step_metric="test/epoch")
+    wandb.define_metric("test/best_accuracy", step_metric="test/epoch")
+    wandb.define_metric("test/cosine_similarity", step_metric="test/epoch")

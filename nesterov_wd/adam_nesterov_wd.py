@@ -342,6 +342,7 @@ def _single_tensor_adamw(
     differentiable: bool,
     has_complex: bool,
 ):
+    assert False, "I want to be using the multi-tensor version"
     assert grad_scale is None and found_inf is None
 
     if torch.jit.is_scripting():
@@ -640,6 +641,7 @@ def _fused_adamw(
     differentiable: bool,
     has_complex: bool,  # Needed for consistency.
 ) -> None:
+    assert False, "I want to be using the multi-tensor version"
     if not params:
         return
     if differentiable:
