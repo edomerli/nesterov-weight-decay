@@ -444,6 +444,8 @@ def _multi_tensor_sgd(
                 device_params[i].add_(device_grads[i], alpha=-lr)
 
         # [EDO] moved here from above
+        # TODO: qua è sbagliato perchè maximize=False e quindi non viene mai eseguito!
+        # In fact, it gives the SAME EXACT CURVE as SGD without weight decay
         if weight_decay != 0:
             # Re-use the intermediate memory (device_grads) already allocated for maximize
             if maximize:

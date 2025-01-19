@@ -33,7 +33,9 @@ class CustomRandomLR(lr_scheduler.LRScheduler):
         super(CustomRandomLR, self).__init__(optimizer, last_epoch)
 
     def get_lr(self):
-        if self.last_epoch == 0 or self.last_epoch % 20 == 0:
-            lr = random.uniform(self.range_lr[0], self.range_lr[1])
-            return [lr for _ in self.base_lrs]
-        return self.base_lrs
+        if self.last_epoch < 20:
+            return self.base_lrs
+        else: 
+            if self.last_epoch % 20 == 0:
+                self.lr = random.uniform(self.range_lr[0], self.range_lr[1])
+            return [self.lr for _ in self.base_lrs]
