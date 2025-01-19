@@ -443,17 +443,10 @@ def _multi_tensor_sgd(
             for i in range(len(device_params)):
                 device_params[i].add_(device_grads[i], alpha=-lr)
 
-        # [EDO] moved here from above
-        # TODO: qua è sbagliato perchè maximize=False e quindi non viene mai eseguito!
-        # In fact, it gives the SAME EXACT CURVE as SGD without weight decay
+        # [EDO] copied the code from AdamNesterovW
+        # Perform stepweight decay
         if weight_decay != 0:
-            # Re-use the intermediate memory (device_grads) already allocated for maximize
-            if maximize:
-                torch._foreach_add_(device_grads, device_params, alpha=weight_decay)
-            else:
-                device_grads = torch._foreach_add(  # type: ignore[assignment]
-                    device_grads, device_params, alpha=weight_decay
-                )
+            torch._foreach_mul_(device_params, 1 - lr * weight_decay)
 
 
 def _fused_sgd(
