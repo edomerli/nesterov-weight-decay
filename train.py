@@ -18,8 +18,8 @@ config_dict = {
     "dataset": "CIFAR10",
     "model_name": "ResNet18",
     "epochs": 200,
-    "lr": 0.1,
-    "wd": 0.01,
+    "lr": 0.001,
+    "wd": 5e-4,
     "nesterov_wd": False,
     "optimizer": "SGD",
     # less important params
@@ -53,11 +53,10 @@ if device.type == 'cuda':
 wandb.watch(model, log='all')
 
 print('==> Optimizer..')
-# NOTE IMPORTANTE TODO: passa come nel codice di swd: weight_decay=wd/lr!!!
 if config.optimizer == 'Adam':
     opt = Adam(model.parameters(), lr=config.lr, weight_decay=config.wd)
 elif config.optimizer == 'AdamW':
-    # NOTE: weight_decay is divided by lr as in the SWD paper 
+    # NOTE: for AdamW, weight_decay is divided by lr as in the SWD paper 
     # ("On the Overlooked Pitfalls of Weight Decay and How to Mitigate Them: A Gradient-Norm Perspective")
     if config.nesterov_wd:
         opt = AdamNesterovWD(model.parameters(), lr=config.lr, weight_decay=config.wd/config.lr)
