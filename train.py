@@ -21,7 +21,7 @@ config_dict = {
     "lr": 0.001,
     "wd": 5e-4,
     "nesterov_wd": False,
-    "optimizer": "SGD",
+    "optimizer": "Adam",
     # less important params
     "torch_version": torch.__version__,
     "seed": 6,
@@ -76,7 +76,7 @@ elif config.dataset == 'CIFAR100':
 scheduler = torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lambda_lr)
 
 print('==> Training..')
-best_err = 0  # best test error
+best_err = 100  # best test error
 
 def train(epoch):
     model.train()
