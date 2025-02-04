@@ -91,7 +91,9 @@ def train(epoch):
         loss.backward()
         opt.step()
 
-        train_loss += loss.item()
+            # faccio "* targets.size(0)" perchè la loss qui è già la media del batch, ma io voglio la somma
+            # la media la faccio io dopo su tutto il dataset
+        train_loss += loss.item() * targets.size(0)
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
@@ -124,8 +126,10 @@ def test(epoch):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             loss = loss_fn(outputs, targets)
-
-            test_loss += loss.item()
+            
+            # faccio "* targets.size(0)" perchè la loss qui è già la media del batch, ma io voglio la somma
+            # la media la faccio io dopo su tutto il dataset
+            test_loss += loss.item() * targets.size(0)
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
